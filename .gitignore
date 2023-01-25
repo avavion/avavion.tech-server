@@ -1,0 +1,5 @@
+.env.prod
+.env.dev
+.env
+
+node_modules/

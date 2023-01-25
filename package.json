@@ -1,0 +1,20 @@
+{
+  "name": "avavion.tech-server",
+  "version": "0.0.1",
+  "description": "RESTAPI server for my avavion.tech",
+  "main": "server.js",
+  "author": "Alan Bogov",
+  "license": "MIT",
+  "dependencies": {
+    "bcrypt": "^5.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "mysql": "^2.18.1",
+    "nodemon": "^2.0.20"
+  },
+  "type": "module",
+  "scripts": {
+    "start": "nodemon server.js"
+  }
+}
