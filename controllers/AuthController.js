@@ -4,16 +4,16 @@ import generatePassword from "../utils/generatePassword.js";
 import ResponseController from "./ResponseController.js";
 
 class AuthController extends ResponseController {
-  existUser(req) {
+  async existUser(req) {
     const { email } = req.body;
 
     const q = "SELECT * FROM `users` WHERE `email` = ?";
 
-    db.query(q, [email], (error, data) => {
-      if (data.length) return true;
+    const [rows] = await db.promise().query(q, [email]);
 
-      return false;
-    });
+    if (rows.length) return true;
+
+    return false;
   }
 
   auth(req, res) {
@@ -46,35 +46,105 @@ class AuthController extends ResponseController {
     });
   }
 
-  register(req, res) {
+  async register(req, res) {
     const { email, password, username } = req.body;
+
+    const isExists = await this.existUser(req);
+
+    if (isExists) {
+      return super.failed(res, {
+        message:
+          "Электронная почта уже используется. Если не помните пароль, обратитесь к администратору веб-сайта",
+      });
+    }
+
+    const q =
+      "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
+
+    const hashedPassword = await generatePassword(password);
+
+    const [rows, fields] = await db
+      .promise()
+      .query(q, [username, email, hashedPassword]);
+
+    console.log(rows, fields);
+
+    // const [users] = await db
+    //   .promise()
+    //   .query("SELECT * FROM `users` WHERE `email` = ?", [email]);
+
+    // const [repositories] = await db
+    //   .promise()
+    //   .query("SELECT * FROM `users` WHERE `email` = ?", [email]);
+    // console.log(users, repositories);
+
+    super.success(res, {
+      message: "Well, check console",
+      rows,
+      fields,
+    });
 
     const getUserQuery = "SELECT * FROM `users` WHERE `email` = ?";
 
-    db.query(getUserQuery, [email], async (error, data) => {
-      if (error) {
-        return super.failed(res);
-      }
+    // const getUser = new Promise((resolve, reject) => {
+    //   db.query(getUserQuery, [email], (error, user) => {
+    //     if (error) {
+    //       reject(error);
+    //     }
 
-      if (data.length) {
-        return super.failed(res);
-      }
+    //     resolve(user);
+    //   });
+    // });
 
-      const hashedPassword = await generatePassword(password);
+    // getUser
+    //   .then((data) => {
+    //     console.log(data);
+    //   })
+    //   .then(async () => {
+    //       const hashedPassword = await generatePassword(password);
 
-      const createUser =
-        "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
+    //       const createUser =
+    //         "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
 
-      db.query(createUser, [username, email, hashedPassword], (error, data) => {
-        if (error) {
-          return super.failed(res);
-        }
+    //     db.query(
+    //       createUser,
+    //       [username, email, hashedPassword],
+    //       (error, data) => {
+    //         console.log(data);
+    //         if (error) {
+    //           return super.failed(res);
+    //         }
+    //         return super.success(res, {
+    //           message: "Success!",
+    //         });
+    //       }
+    //     );
+    //   });
 
-        return super.success(res, {
-          message: "Success!",
-        });
-      });
-    });
+    // db.query(getUserQuery, [email], async (error, data) => {
+    //   if (error) {
+    //     return super.failed(res);
+    //   }
+
+    //   if (data.length) {
+    //     return super.failed(res);
+    //   }
+
+    //   const hashedPassword = await generatePassword(password);
+
+    //   const createUser =
+    //     "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
+
+    //   db.query(createUser, [username, email, hashedPassword], (error, data) => {
+    //     if (error) {
+    //       return super.failed(res);
+    //     }
+
+    //     return super.success(res, {
+    //       message: "Success!",
+    //     });
+    //   });
+    // });
   }
 }
 
