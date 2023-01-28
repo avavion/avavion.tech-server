@@ -5,6 +5,7 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
+
 // Routes
 import tagRoutes from "./routes/tags.js";
 import userRoutes from "./routes/users.js";
@@ -27,7 +28,7 @@ app.use(express.json());
 // app.use("/api", userRoutes);
 // app.use("/api", authRoutes);
 
-import { Sequelize, DataTypes } from "sequelize";
+import { Sequelize, DataTypes, Op } from "sequelize";
 
 const sequelize = new Sequelize(
   process.env.DB_NAME,
@@ -39,6 +40,37 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT,
   }
 );
+
+// generatePassword("timoha").then((data) => console.log(data));
+
+const users = [
+  {
+    username: "avavion.",
+    email: "avavionmvm@gmail.com",
+    password: "$2b$10$LezLNts0XiZXzF9Axci65OyVIE6mv528MJNgCcPacKZXkMpmM5Zn6",
+    role: "admin",
+  },
+  {
+    username: "vazgen",
+    email: "vazgen@gmail.com",
+    password: "$2b$10$6ux8FEI3uYBzeWItGcYstuiMi/G9dMgoPnI37yvUwfbo0rraGzosq",
+  },
+  {
+    username: "ceh9",
+    email: "ceh9@gmail.com",
+    password: "$2b$10$1Gexf6pat4/MhZcc2xUn.uYsfKmCW8errd4MRVDOugFFkp/mKXvh6",
+  },
+  {
+    username: "heritage",
+    email: "heritage@gmail.com",
+    password: "$2b$10$dKQqh7I0hPKiB78JlROtlO4NrxG62L1Ct./QDnF2CVX8xs6u25Qj.",
+  },
+  {
+    username: "timoha",
+    email: "timoha@gmail.com",
+    password: "$2b$10$ABsB5vwFnsn.hheR9IOBw.N2zh20wFaYALxoNtZvYMj8uJt.YZXiy",
+  },
+];
 
 sequelize
   .authenticate()
@@ -65,18 +97,40 @@ const User = sequelize.define("user", {
   },
 });
 
-User.sync({ force: true })
+User.sync({ alter: true })
   .then(() => {
-    const user = User.build({
-      username: "avavion.",
-      email: "avavionmvm@gmail.com",
-      password: "$2b$10$TrCrCUFwmtyDA7GmLoTinug5LPZjg.9Jz/JKKNDAhuhCIMK27GZi6",
-      role: "admin",
-    });
+    // return User.bulkCreate(users);
+    // console.log();
 
-    console.log(user);
+    // return User.findAll({
+    // where: {
+    //   // username: "avavion.",
+    // },
+    // order: [
+    //   ['email', 'ASC']
+    // ]
+    // where: {
+    //   id: {
+    //     [Op.lt]: 3,
+    //   },
+    // },
+    // });
 
-    console.log("Table and model synced successfully!");
+    return User.update(
+      {
+        username: "avavion",
+      },
+      {
+        where: {
+          username: "avavion.",
+        },
+      }
+    );
+
+    // console.log(users);
+  })
+  .then((data) => {
+    // data.forEach((u) => console.log(u.toJSON()));
   })
   .catch((error) => console.error(error.message));
 
