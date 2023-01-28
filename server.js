@@ -5,7 +5,6 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
-
 // Routes
 import tagRoutes from "./routes/tags.js";
 import userRoutes from "./routes/users.js";
