@@ -1,150 +1,96 @@
 import bcrypt from "bcrypt";
-import db from "../database/index.js";
+import User from "../database/models/User.js";
 import generatePassword from "../utils/generatePassword.js";
 import ResponseController from "./ResponseController.js";
+import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
+
+dotenv.config();
 
 class AuthController extends ResponseController {
-  async existUser(req) {
-    const { email } = req.body;
-
-    const q = "SELECT * FROM `users` WHERE `email` = ?";
-
-    const [rows] = await db.promise().query(q, [email]);
-
-    if (rows.length) return true;
-
-    return false;
-  }
-
-  auth(req, res) {
+  async signin(req, res) {
     const { email, password } = req.body;
 
-    const q = "SELECT * FROM `users` WHERE `email` = ?";
-
-    db.query(q, [email], (error, user) => {
-      user = user.pop();
-
-      if (error) {
-        return super.failed(res, {
-          message: "Invalid credentials",
-        });
-      }
-
-      if (!user) {
-        return super.failed(res, {
-          message: "Invalid credentials",
-        });
-      }
-
-      if (!bcrypt.compare(password, user.password)) {
-        return super.failed(res, {
-          message: "Invalid credentials",
-        });
-      }
-
-      return super.success(res, user);
+    const user = await User.findOne({
+      where: {
+        email: email,
+      },
     });
-  }
 
-  async register(req, res) {
-    const { email, password, username } = req.body;
+    if (!user) {
+      const response = {
+        message: "The user with this email does not exist",
+      };
 
-    const isExists = await this.existUser(req);
-
-    if (isExists) {
-      return super.failed(res, {
-        message:
-          "Электронная почта уже используется. Если не помните пароль, обратитесь к администратору веб-сайта",
-      });
+      return super.failed(res, response);
     }
 
-    const q =
-      "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
+    const compare = await bcrypt.compare(password, user.password);
 
-    const hashedPassword = await generatePassword(password);
+    if (!compare) {
+      const response = {
+        message: "Inncorect email or password",
+      };
 
-    const [rows, fields] = await db
-      .promise()
-      .query(q, [username, email, hashedPassword]);
+      return super.failed(res, response);
+    }
 
-    console.log(rows, fields);
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
 
-    // const [users] = await db
-    //   .promise()
-    //   .query("SELECT * FROM `users` WHERE `email` = ?", [email]);
+    const token = jwt.sign(payload, process.env.JWT_SECRET);
 
-    // const [repositories] = await db
-    //   .promise()
-    //   .query("SELECT * FROM `users` WHERE `email` = ?", [email]);
-    // console.log(users, repositories);
+    const response = {
+      message: "Authorization was successful!",
+      token: token,
+    };
 
-    super.success(res, {
-      message: "Well, check console",
-      rows,
-      fields,
+    return super.success(res, response);
+  }
+
+  async signup(req, res) {
+    const { username, email, password } = req.body;
+
+    const hashPassword = await generatePassword(password);
+
+    const [user, created] = await User.findOrCreate({
+      where: {
+        username: username,
+        email: email,
+      },
+      defaults: {
+        email: email,
+        username: username,
+        password: hashPassword,
+      },
     });
 
-    const getUserQuery = "SELECT * FROM `users` WHERE `email` = ?";
+    if (!created) {
+      const response = {
+        message: "A user already exists",
+      };
 
-    // const getUser = new Promise((resolve, reject) => {
-    //   db.query(getUserQuery, [email], (error, user) => {
-    //     if (error) {
-    //       reject(error);
-    //     }
+      return super.failed(res, response);
+    }
 
-    //     resolve(user);
-    //   });
-    // });
+    const payload = {
+      id: user.id,
+      email: user.email,
+      username: user.username,
+    };
 
-    // getUser
-    //   .then((data) => {
-    //     console.log(data);
-    //   })
-    //   .then(async () => {
-    //       const hashedPassword = await generatePassword(password);
+    const token = jwt.sign(payload, process.env.JWT_SECRET);
 
-    //       const createUser =
-    //         "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
+    const response = {
+      message: "The user was successfully created",
+      created: created,
+      token: token,
+    };
 
-    //     db.query(
-    //       createUser,
-    //       [username, email, hashedPassword],
-    //       (error, data) => {
-    //         console.log(data);
-    //         if (error) {
-    //           return super.failed(res);
-    //         }
-    //         return super.success(res, {
-    //           message: "Success!",
-    //         });
-    //       }
-    //     );
-    //   });
-
-    // db.query(getUserQuery, [email], async (error, data) => {
-    //   if (error) {
-    //     return super.failed(res);
-    //   }
-
-    //   if (data.length) {
-    //     return super.failed(res);
-    //   }
-
-    //   const hashedPassword = await generatePassword(password);
-
-    //   const createUser =
-    //     "INSERT INTO `users` (`username`, `email`, `password`) VALUES (?)";
-
-    //   db.query(createUser, [username, email, hashedPassword], (error, data) => {
-    //     if (error) {
-    //       return super.failed(res);
-    //     }
-
-    //     return super.success(res, {
-    //       message: "Success!",
-    //     });
-    //   });
-    // });
+    return super.success(res, response, 201);
   }
 }
 

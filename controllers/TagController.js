@@ -1,36 +1,19 @@
-import db from "../database/index.js";
-
+import Tag from "../database/models/Tag.js";
 import ResponseController from "./ResponseController.js";
 
 class TagController extends ResponseController {
-  getAll(req, res) {
-    const q = "SELECT * FROM `tags`";
+  async getAll(req, res) {
+    const tags = await Tag.findAll();
 
-    db.query(q, (error, data) => {
-      if (error) {
-        return super.failed(res, {
-          message: "An error occurred during the query!",
-          error: error.message,
-        });
-      }
-
-      return super.success(res, data);
-    });
+    return super.success(res, tags);
   }
 
-  getById(req, res) {
-    const q = "SELECT * FROM `tags` WHERE `id` = ?";
+  async getById(req, res) {
+    const { id } = req.params;
 
-    db.query(q, [req.params.id], (error, data) => {
-      if (error) {
-        return super.failed(res, {
-          message: "An error occurred during the query!",
-          error: error.message,
-        });
-      }
+    const tag = await Tag.findByPk(id);
 
-      return super.success(res, ...data);
-    });
+    return super.success(res, tag);
   }
 }
 
