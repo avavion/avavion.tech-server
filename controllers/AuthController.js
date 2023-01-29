@@ -1,11 +1,16 @@
 import bcrypt from "bcrypt";
 import User from "../database/models/User.js";
-import generatePassword from "../utils/generatePassword.js";
+import { generatePassword, makeToken } from "../heplers/index.js";
 import ResponseController from "./ResponseController.js";
-import jwt from "jsonwebtoken";
-import * as dotenv from "dotenv";
 
-dotenv.config();
+const makeAuthPayload = (user) => {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+  };
+};
 
 class AuthController extends ResponseController {
   async signin(req, res) {
@@ -35,13 +40,8 @@ class AuthController extends ResponseController {
       return super.failed(res, response);
     }
 
-    const payload = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-    };
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET);
+    const payload = makeAuthPayload(user);
+    const token = makeToken(payload);
 
     const response = {
       message: "Authorization was successful!",
@@ -76,13 +76,8 @@ class AuthController extends ResponseController {
       return super.failed(res, response);
     }
 
-    const payload = {
-      id: user.id,
-      email: user.email,
-      username: user.username,
-    };
-
-    const token = jwt.sign(payload, process.env.JWT_SECRET);
+    const payload = makeAuthPayload(user);
+    const token = makeToken(payload);
 
     const response = {
       message: "The user was successfully created",
