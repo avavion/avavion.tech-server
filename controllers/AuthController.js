@@ -1,5 +1,5 @@
 import bcrypt from "bcrypt";
-import User from "../database/models/User.js";
+import { User } from "../database/models/index.js";
 import { generatePassword, makeToken } from "../heplers/index.js";
 import ResponseController from "./ResponseController.js";
 
@@ -45,7 +45,7 @@ class AuthController extends ResponseController {
 
     const response = {
       message: "Authorization was successful!",
-      token: token,
+      token: `Bearer ${token}`,
     };
 
     return super.success(res, response);
@@ -82,7 +82,7 @@ class AuthController extends ResponseController {
     const response = {
       message: "The user was successfully created",
       created: created,
-      token: token,
+      token: `Bearer ${token}`,
     };
 
     return super.success(res, response, 201);

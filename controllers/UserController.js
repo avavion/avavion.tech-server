@@ -1,8 +1,10 @@
 import ResponseController from "./ResponseController.js";
-import User from "../database/models/User.js";
+import { User } from "../database/models/index.js";
 
 class UserController extends ResponseController {
   async getAll(req, res) {
+    console.log(req.user);
+
     const users = await User.findAll();
 
     return super.success(res, users, 200);

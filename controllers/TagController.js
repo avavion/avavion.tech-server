@@ -1,4 +1,4 @@
-import Tag from "../database/models/Tag.js";
+import {Tag} from "../database/models/index.js";
 import ResponseController from "./ResponseController.js";
 
 class TagController extends ResponseController {

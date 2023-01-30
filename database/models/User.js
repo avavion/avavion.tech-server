@@ -1,6 +1,11 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../sequelize.js";
 
+export const ROLES = {
+  USER: "user",
+  ADMIN: "admin",
+};
+
 const User = sequelize.define("user", {
   id: {
     allowNull: false,
@@ -25,7 +30,7 @@ const User = sequelize.define("user", {
   role: {
     allowNull: false,
     defaultValue: "user",
-    type: DataTypes.ENUM("user", "admin"),
+    type: DataTypes.ENUM(Object.values(ROLES)),
   },
 });
 

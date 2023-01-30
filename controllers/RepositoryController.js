@@ -1,4 +1,4 @@
-import Repository from "../database/models/Repository.js";
+import { Repository } from "../database/models/index.js";
 import ResponseController from "./ResponseController.js";
 
 class RepositoryController extends ResponseController {
@@ -6,6 +6,24 @@ class RepositoryController extends ResponseController {
     const repositories = await Repository.findAll();
 
     return super.success(res, repositories, 200);
+  }
+
+  async create(req, res) {
+    const { title, content, url } = req.body;
+
+    try {
+      const repository = await Repository.create({
+        title,
+        content,
+        url,
+      });
+
+      return super.success(res, repository, 201);
+    } catch (error) {
+      return super.failed(res, {
+        message: error.message,
+      });
+    }
   }
 
   async getById(req, res) {

@@ -2,6 +2,12 @@ import express from "express";
 import cors from "cors";
 import sequelize from "./database/sequelize.js";
 
+// Routes
+import userRoutes from "./routes/users.js";
+import repositoryRoutes from "./routes/repositories.js";
+import tagRoutes from "./routes/tags.js";
+import authRoutes from "./routes/auth.js";
+
 import * as dotenv from "dotenv";
 
 dotenv.config();
@@ -18,16 +24,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-import userRoutes from "./routes/users.js";
-import repositoryRoutes from "./routes/repositories.js";
-import tagRoutes from "./routes/tags.js";
-import authRoutes from "./routes/auth.js";
-
-app.use("/api", [userRoutes, tagRoutes, repositoryRoutes]);
-app.use("/api/auth", authRoutes);
+app.use("/api", [authRoutes, userRoutes, tagRoutes, repositoryRoutes]);
 
 sequelize
-  .sync()
+  .sync({
+    force: true,
+  })
   .then(() => {
     app.listen(
       port,
